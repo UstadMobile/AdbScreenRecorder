@@ -1,0 +1,36 @@
+
+plugins {
+    id 'java-gradle-plugin'
+    id 'kotlin'
+    id 'maven-publish'
+}
+
+gradlePlugin {
+    plugins {
+        simplePlugin {
+            id = 'com.ustadmobile.adbscreenrecorder'
+            implementationClass = 'com.ustadmobile.adbscreenrecorder.gradleplugin.AdbScreenRecorderPlugin'
+        }
+    }
+}
+
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = "com.ustadmobile.adbscreenrecorder.gradle.plugin"
+            version = rootProject.version
+
+            from components.java
+        }
+    }
+}
