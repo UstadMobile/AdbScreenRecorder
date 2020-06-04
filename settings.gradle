@@ -10,7 +10,10 @@ pluginManagement {
     }
 }
 
+include ':lib-http-server'
 include ':lib-gradle-plugin'
 include ':app'
+include ':lib-client'
+
 rootProject.name = "EspressoScreenRecorder"
 

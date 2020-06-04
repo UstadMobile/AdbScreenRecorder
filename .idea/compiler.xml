@@ -3,6 +3,7 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
       <module name="lib-gradle-plugin" target="1.7" />
+      <module name="lib-http-server" target="1.7" />
     </bytecodeTargetLevel>
   </component>
 </project>
