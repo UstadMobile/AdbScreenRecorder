@@ -2,6 +2,7 @@ package com.ustadmobile.adbscreenrecorder.httpserver
 
 import com.ustadmobile.adbscreenrecorder.httpserver.AdbScreenRecorderHttpServer.Companion.identifyByOpenPort
 import com.ustadmobile.adbscreenrecorder.httpserver.AdbScreenRecorderHttpServer.Companion.listAndroidDevices
+import fi.iki.elonen.NanoHTTPD
 import org.junit.Test
 import java.nio.file.Files
 
@@ -35,6 +36,15 @@ class AdbScreenRecorderHttpServerTest  {
         Thread.sleep(10000)
         val fileRecorded = recordingManager.stopRecording(activeDevice!!, "FooFragmentTest", "givenFoo")
         println("Saved ")
+    }
+
+    @Test
+    fun testRunningHttpServer() {
+        val tmpDir = Files.createTempDirectory("screenrecordhttp").toFile()
+        val server = AdbScreenRecorderHttpServer(8081,
+            "/home/mike/Android/Sdk/platform-tools/adb", tmpDir)
+        server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
+        println("NanoHTTPD is running on port 8081")
     }
 
 }
