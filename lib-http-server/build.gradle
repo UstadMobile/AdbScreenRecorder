@@ -1,5 +1,9 @@
-apply plugin: 'java-library'
-apply plugin: 'kotlin'
+
+plugins {
+    id 'java-library'
+    id 'kotlin'
+    id 'maven-publish'
+}
 
 dependencies {
     implementation "org.nanohttpd:nanohttpd:2.3.1"
@@ -10,3 +14,15 @@ dependencies {
 
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = project.name
+            version = rootProject.version
+
+            from components.java
+        }
+    }
+}

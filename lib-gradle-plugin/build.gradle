@@ -18,6 +18,8 @@ gradlePlugin {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "org.nanohttpd:nanohttpd:2.3.1"
+    implementation project(":lib-http-server")
 }
 
 sourceCompatibility = "1.8"

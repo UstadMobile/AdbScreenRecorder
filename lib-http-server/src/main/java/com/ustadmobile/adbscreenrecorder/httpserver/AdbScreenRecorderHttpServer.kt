@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 
-class AdbScreenRecorderHttpServer(port: Int, val adbPath: String, val destDir: File)  : NanoHTTPD(port) {
+class AdbScreenRecorderHttpServer(hostName: String?, port: Int, var adbPath: String, val destDir: File)  : NanoHTTPD(hostName, port) {
 
     val recordingManager = RecordingManager(adbPath, destDir)
 
