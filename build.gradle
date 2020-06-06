@@ -14,7 +14,7 @@ buildscript {
     }
 }
 
-version = "0.3-LOCAL4"
+version = "0.3-LOCAL27"
 group = "com.ustadmobile.adbscreenrecorder"
 
 allprojects {

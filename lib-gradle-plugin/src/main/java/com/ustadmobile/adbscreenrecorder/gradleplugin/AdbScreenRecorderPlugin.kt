@@ -1,6 +1,7 @@
 package com.ustadmobile.adbscreenrecorder.gradleplugin
 
 import com.ustadmobile.adbscreenrecorder.httpserver.AdbScreenRecorderHttpServer
+import fi.iki.elonen.NanoHTTPD
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import java.io.File
@@ -23,11 +24,11 @@ class AdbScreenRecorderPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create("adbScreenRecord", AdbScreenRecorderExtension::class.java)
 
-        val destDir = extension.destDir ?: "${project.buildDir.absolutePath}${File.pathSeparator}reports${File.pathSeparator}adbScreenRecord"
+        val destDir = extension.destDir ?: "${project.buildDir.absolutePath}${File.separator}reports${File.separator}adbScreenRecord"
         val destination = project.file(destDir)
+        destination.takeIf { !it.exists() }?.mkdirs()
 
-        val server = AdbScreenRecorderHttpServer(null, extension.port, extension.adbPath ?: "",
-            destination)
+        var server: AdbScreenRecorderHttpServer? = null
 
         val startTask = project.task("startAdbScreenRecordServer") {
             it.doLast {
@@ -56,16 +57,21 @@ class AdbScreenRecorderPlugin : Plugin<Project> {
                 if(adbPath == null)
                     throw IllegalStateException("AdbScreenRecorderPlugin cannot find adb. " +
                             "Please specify it in the config block, local.properties or set ANDROID_HOME environment")
+                if(adbPath.isBlank() || !File(adbPath).exists()) {
+                    throw IllegalStateException("ADBPath found $adbPath is not valid!")
+                }
 
-                server.adbPath = adbPath
-                server.start()
-                println("ADB Screen Recorder started on port ${extension.port} with adbPath ${server.adbPath}")
+                server = AdbScreenRecorderHttpServer(null, extension.port,
+                    adbPath ?: "", destination)
+
+                server?.start(NanoHTTPD.SOCKET_READ_TIMEOUT, true)
             }
         }
 
         val stopTask = project.task("stopAdbScreenRecordServer") {
             it.doLast {
-                server.stop()
+                server?.stop()
+                server = null
             }
         }
 

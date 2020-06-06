@@ -1,12 +1,18 @@
 package com.ustadmobile.espressoscreenrecorder
 
-import androidx.test.platform.app.InstrumentationRegistry
+import android.widget.TextView
+import androidx.test.core.app.launchActivity
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.ustadmobile.adbscreenrecorder.client.AdbScreenRecordRule
 
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import org.junit.Assert.*
+import org.junit.Rule
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -15,10 +21,21 @@ import org.junit.Assert.*
  */
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
+
+    @JvmField
+    @Rule
+    var adbScreenRecordRule = AdbScreenRecordRule(BuildConfig.ADB_RECORD_SERVER)
+
     @Test
-    fun useAppContext() {
-        // Context of the app under test.
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.ustadmobile.espressoscreenrecorder", appContext.packageName)
+    fun runUiTest() {
+        val scenario = launchActivity<MainActivity>()
+        for(i in 1 .. 15){
+            scenario.onActivity {
+                it.findViewById<TextView>(R.id.activity_main_text).text = "$i"
+            }
+            Thread.sleep(1000)
+        }
+        onView(withId(R.id.activity_main_text)).check(matches(isDisplayed()))
     }
+
 }

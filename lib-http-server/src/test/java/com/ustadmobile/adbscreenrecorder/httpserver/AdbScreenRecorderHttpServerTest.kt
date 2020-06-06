@@ -41,7 +41,7 @@ class AdbScreenRecorderHttpServerTest  {
     @Test
     fun testRunningHttpServer() {
         val tmpDir = Files.createTempDirectory("screenrecordhttp").toFile()
-        val server = AdbScreenRecorderHttpServer("localhost", 8081,
+        val server = AdbScreenRecorderHttpServer(null, 9004,
             "/home/mike/Android/Sdk/platform-tools/adb", tmpDir)
         server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
         println("NanoHTTPD is running on port 8081")

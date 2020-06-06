@@ -5,13 +5,18 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.Socket
 import java.net.URL
+import java.text.DateFormat
+import java.time.format.DateTimeFormatter
+import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 
-class AdbScreenRecorderHttpServer(hostName: String?, port: Int, var adbPath: String, val destDir: File)  : NanoHTTPD(hostName, port) {
+class AdbScreenRecorderHttpServer(hostName: String?, port: Int, val adbPath: String, val destDir: File)  : NanoHTTPD(hostName, port) {
 
     val recordingManager = RecordingManager(adbPath, destDir)
+
+    val dateFormatter = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG)
 
     override fun serve(session: IHTTPSession): Response {
         if(session.uri.startsWith("/startRecording") || session.uri.startsWith("/endRecording")) {
@@ -20,25 +25,50 @@ class AdbScreenRecorderHttpServer(hostName: String?, port: Int, var adbPath: Str
             val testMethod = session.parameters.get("testMethod")?.get(0)
 
             if(testClazz == null || testMethod == null || openPort == -1) {
+                println("AdbScreenRecorderHttpServer: GET ${session.uri} (400) - missing testClazz or testMethod")
                 return newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_REQUEST,
                     "text/plain", "missing testClazz or testMethod")
             }
 
             val connectedDevices = listAndroidDevices(adbPath)
-            val deviceName = identifyByOpenPort(adbPath, connectedDevices, openPort) ?:
-                return newFixedLengthResponse(Response.Status.GONE, "text/plain",
-                "Adb does not find any device with http server on port: $openPort. Connected devices=${connectedDevices.joinToString()}")
+            val deviceName = identifyByOpenPort(adbPath, connectedDevices, openPort)
+
+            if(deviceName == null) {
+                println("(${dateFormatter.format(Date())}) AdbScreenRecorderHttpServer: GET ${session.uri} (410) Cannot identify android device on $openPort")
+                return newFixedLengthResponse(
+                    Response.Status.GONE, "text/plain",
+                    "Adb does not find any device with http server on port: $openPort. Connected devices=${connectedDevices.joinToString()}"
+                )
+            }
 
             if(session.uri.startsWith("/startRecording")) {
-                recordingManager.startRecording(deviceName, testClazz, testMethod)
-                return newFixedLengthResponse("ADB recording started OK")
+                println("(${dateFormatter.format(Date())}) ADBScreenRecord start recording request for $deviceName $testClazz.$testMethod ")
+                try {
+                    recordingManager.startRecording(deviceName, testClazz, testMethod)
+                    println("ADB started recording for $deviceName - $testClazz.$testMethod")
+                    return newFixedLengthResponse("ADB recording started OK")
+                }catch(e: Exception) {
+                    println("ADBScreenRecord: ERROR: $e")
+                    e.printStackTrace()
+                    return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "text/plain",
+                        e.toString())
+                }
+
             }else {
-                val destFile = recordingManager.stopRecording(deviceName, testClazz, testMethod)
-                return newFixedLengthResponse("ADB recording stopped and saved to ${destFile.absolutePath}")
+                println("(${dateFormatter.format(Date())}) ADBScreenRecord stop recording request ${session.uri}")
+                try {
+                    val destFile = recordingManager.stopRecording(deviceName, testClazz, testMethod)
+                    return newFixedLengthResponse("ADB recording stopped and saved to ${destFile.absolutePath}")
+                }catch(e: Exception) {
+                    println("ADBScreenRecord stop recording request ${session.uri}")
+                    e.printStackTrace()
+                    return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "text/plain",
+                        e.toString())
+                }
             }
         }
 
-        return newFixedLengthResponse(Response.Status.OK, WELCOME_MESSAGE, "text/plain")
+        return newFixedLengthResponse(Response.Status.OK,  "text/plain", WELCOME_MESSAGE)
     }
 
 
