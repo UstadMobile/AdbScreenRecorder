@@ -1,6 +1,10 @@
 package com.ustadmobile.adbscreenrecorder.httpserver
 import fi.iki.elonen.NanoHTTPD
+import kotlinx.html.*
+import kotlinx.html.stream.appendHTML
 import java.io.File
+import java.io.FileFilter
+import java.io.FileWriter
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.Socket
@@ -17,6 +21,8 @@ class AdbScreenRecorderHttpServer(hostName: String?, port: Int, val adbPath: Str
     val recordingManager = RecordingManager(adbPath, destDir)
 
     val dateFormatter = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG)
+
+    val allKnownDevices = mutableSetOf<String>()
 
     override fun serve(session: IHTTPSession): Response {
         if(session.uri.startsWith("/startRecording") || session.uri.startsWith("/endRecording")) {
@@ -40,6 +46,8 @@ class AdbScreenRecorderHttpServer(hostName: String?, port: Int, val adbPath: Str
                     "Adb does not find any device with http server on port: $openPort. Connected devices=${connectedDevices.joinToString()}"
                 )
             }
+
+            allKnownDevices += deviceName
 
             if(session.uri.startsWith("/startRecording")) {
                 println("(${dateFormatter.format(Date())}) ADBScreenRecord start recording request for $deviceName $testClazz.$testMethod ")
@@ -128,6 +136,62 @@ class AdbScreenRecorderHttpServer(hostName: String?, port: Int, val adbPath: Str
             }.map { it.split(Pattern.compile("\\s+")).first()}
 
             return devices
+        }
+
+        fun generateReport(baseDir: File, deviceNames: List<String>) {
+            val fileWriter = FileWriter(File(baseDir, "index.html"))
+
+            fileWriter.appendHTML().html {
+                body {
+                    table {
+                        tr {
+                            td {
+                                + " - "
+                            }
+
+                            deviceNames.forEach {deviceName ->
+                                td {
+                                    + deviceName
+                                }
+                            }
+                        }
+
+
+                        baseDir.listFiles(FileFilter { it.isDirectory }).forEach {testClazzDir ->
+                            tr {
+                                th {
+                                    colSpan = (deviceNames.size + 1).toString()
+                                    + "${testClazzDir.name}"
+                                }
+                            }
+
+                            testClazzDir.listFiles(FileFilter { it.isDirectory }).forEach { testMethodDir ->
+                                tr {
+                                    td {
+                                        + testMethodDir.name
+                                    }
+
+                                    deviceNames.forEach { deviceName ->
+                                        td {
+                                            if(File(testMethodDir, "$deviceName.mp4").exists()) {
+                                                video {
+                                                    src = "${testClazzDir.name}/${testMethodDir.name}/$deviceName.mp4"
+                                                    controls = true
+                                                }
+                                            }else {
+                                                + "No video"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            fileWriter.flush()
+            fileWriter.close()
         }
 
     }

@@ -70,6 +70,9 @@ class AdbScreenRecorderPlugin : Plugin<Project> {
 
         val stopTask = project.task("stopAdbScreenRecordServer") {
             it.doLast {
+                server?.also {
+                    AdbScreenRecorderHttpServer.generateReport(it.destDir, it.allKnownDevices.toList())
+                }
                 server?.stop()
                 server = null
             }

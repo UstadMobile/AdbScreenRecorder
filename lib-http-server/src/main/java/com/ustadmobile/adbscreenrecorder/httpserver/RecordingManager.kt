@@ -37,11 +37,11 @@ class RecordingManager(val adbPath: String, val destDir: File) {
         process.waitFor(20, TimeUnit.SECONDS)
 
 
-        val deviceDestDir = File(destDir, deviceName)
-        val clazzDestDir = File(deviceDestDir, clazzName)
-        val destFile = File(clazzDestDir, "$testName.mp4")
+        val clazzDestDir = File(destDir, clazzName)
+        val methodDestDir = File(clazzDestDir, testName)
+        val destFile = File(methodDestDir, "$deviceName.mp4")
 
-        clazzDestDir.mkdirs()
+        methodDestDir.mkdirs()
 
         ProcessBuilder(listOf(adbPath, "-s", deviceName, "pull",
             "/sdcard/$clazzName-$testName.mp4", destFile.absolutePath))
