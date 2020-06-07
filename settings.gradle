@@ -10,6 +10,7 @@ pluginManagement {
     }
 }
 
+include ':lib-shared'
 include ':lib-http-server'
 include ':lib-gradle-plugin'
 include ':app'

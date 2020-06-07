@@ -1,4 +1,4 @@
-package com.ustadmobile.espressoscreenrecorder
+package com.ustadmobile.adbscreenrecorder
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle

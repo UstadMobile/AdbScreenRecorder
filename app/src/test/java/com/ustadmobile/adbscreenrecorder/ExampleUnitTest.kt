@@ -1,4 +1,4 @@
-package com.ustadmobile.espressoscreenrecorder
+package com.ustadmobile.adbscreenrecorder
 
 import org.junit.Test
 

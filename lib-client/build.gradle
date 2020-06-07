@@ -31,6 +31,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation "org.nanohttpd:nanohttpd:2.3.1"
     implementation 'junit:junit:4.12'
+    implementation project(":lib-shared")
+    implementation "com.google.code.gson:gson:2.8.6"
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 

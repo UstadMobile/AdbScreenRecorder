@@ -1,6 +1,10 @@
 package com.ustadmobile.adbscreenrecorder.client
 
+import android.os.Build
 import android.util.Log
+import com.google.gson.Gson
+import com.ustadmobile.adbscreenrecorder.DeviceInfo
+import com.ustadmobile.adbscreenrecorder.TestInfo
 import fi.iki.elonen.NanoHTTPD
 import org.junit.AssumptionViolatedException
 import org.junit.rules.TestWatcher
@@ -10,14 +14,29 @@ import java.net.URL
 import java.net.URLEncoder
 import kotlin.IllegalStateException
 
+fun buildDeviceInfo() = DeviceInfo(Build.VERSION.RELEASE, Build.VERSION.SDK_INT, Build.MODEL, Build.BRAND)
+
+fun Description.toTestInfo(status: Int): TestInfo {
+    val clazzAnnotation = testClass.getAnnotation(AdbScreenRecord::class.java)
+    val clazzDesc = clazzAnnotation?.value ?: className
+
+    val methodAnnotation = getAnnotation(AdbScreenRecord::class.java)
+    val methodDesc = methodAnnotation?.value ?: methodName
+
+    return TestInfo(clazzDesc, methodDesc, status)
+}
+
 class AdbScreenRecordRule(val serverUrl: String, val enabled: Boolean = true) : TestWatcher(){
 
     private var openPortHttpd: NanoHTTPD? = null
 
+    private val gson = Gson()
+
     private fun makeQueryParams(description: Description): String {
         return "openPort=${openPortHttpd?.listeningPort ?: -1}" +
                 "&testClazz=${URLEncoder.encode(description.className, "UTF-8")}" +
-                "&testMethod=${URLEncoder.encode(description.methodName, "UTF-8")}"
+                "&testMethod=${URLEncoder.encode(description.methodName, "UTF-8")}" +
+                "&deviceInfo=${URLEncoder.encode(gson.toJson(buildDeviceInfo()), "UTF-8")}"
     }
 
     private fun sendRequest(path: String) {
@@ -43,6 +62,8 @@ class AdbScreenRecordRule(val serverUrl: String, val enabled: Boolean = true) : 
         openPortHttpd = IdentifyPortNanoHttpd(0).also {
             it.start()
         }
+        val descriptionInfo = description.toTestInfo(TestInfo.STATUS_NOT_RUN)
+        println(descriptionInfo)
 
         //start recording
         sendRequest("/startRecording?" + makeQueryParams(description))
@@ -52,21 +73,22 @@ class AdbScreenRecordRule(val serverUrl: String, val enabled: Boolean = true) : 
 
     override fun succeeded(description: Description) {
         super.succeeded(description)
-        handleFinished(true, false, false, description)
+        handleFinished(TestInfo.STATUS_PASS, description)
     }
 
     override fun failed(e: Throwable?, description: Description) {
         super.failed(e, description)
-        handleFinished(false, true, false, description)
+        handleFinished(TestInfo.STATUS_FAIL, description)
     }
 
     override fun skipped(e: AssumptionViolatedException?, description: Description) {
         super.skipped(e, description)
-        handleFinished(false, false, true, description)
+        handleFinished(TestInfo.STATUS_SKIPPED, description)
     }
 
-    private fun handleFinished(succeeded: Boolean, failed: Boolean, skipped: Boolean, description: Description) {
-        sendRequest("/endRecording?" + makeQueryParams(description))
+    private fun handleFinished(status: Int, description: Description) {
+        sendRequest("/endRecording?${makeQueryParams(description)}" +
+                "&testInfo=${URLEncoder.encode(gson.toJson(description.toTestInfo(status)), "UTF-8")}")
     }
 
     companion object {

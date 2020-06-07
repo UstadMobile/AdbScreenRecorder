@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/lib-client" />
             <option value="$PROJECT_DIR$/lib-gradle-plugin" />
             <option value="$PROJECT_DIR$/lib-http-server" />
+            <option value="$PROJECT_DIR$/lib-shared" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

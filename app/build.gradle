@@ -1,6 +1,6 @@
 
 plugins {
-    id "com.ustadmobile.adbscreenrecorder" version "0.3-LOCAL31"
+    id "com.ustadmobile.adbscreenrecorder" version "0.3-LOCAL40"
 }
 
 apply plugin: 'com.android.application'

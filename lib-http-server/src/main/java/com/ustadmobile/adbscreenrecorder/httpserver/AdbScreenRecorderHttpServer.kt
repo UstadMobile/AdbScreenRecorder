@@ -1,16 +1,17 @@
 package com.ustadmobile.adbscreenrecorder.httpserver
+import com.google.gson.Gson
+import com.ustadmobile.adbscreenrecorder.DeviceInfo
+import com.ustadmobile.adbscreenrecorder.TestInfo
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
 import java.io.File
 import java.io.FileFilter
+import java.io.FileOutputStream
 import java.io.FileWriter
-import java.io.InputStream
 import java.net.HttpURLConnection
-import java.net.Socket
 import java.net.URL
 import java.text.DateFormat
-import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -22,13 +23,20 @@ class AdbScreenRecorderHttpServer(hostName: String?, port: Int, val adbPath: Str
 
     val dateFormatter = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG)
 
-    val allKnownDevices = mutableSetOf<String>()
+    val allKnownDevices = mutableMapOf<String, DeviceInfo>()
+
+    //Map key = "devicename/testClazz/testMethod"
+    val testResultsMap = mutableMapOf<String, TestInfo>()
+
+    val gson = Gson()
 
     override fun serve(session: IHTTPSession): Response {
         if(session.uri.startsWith("/startRecording") || session.uri.startsWith("/endRecording")) {
             val openPort = session.parameters.get("openPort")?.get(0)?.toInt() ?: -1
             val testClazz = session.parameters.get("testClazz")?.get(0)
             val testMethod = session.parameters.get("testMethod")?.get(0)
+            val deviceInfoJson = session.parameters.get("deviceInfo")?.get(0)
+            val testInfoJson = session.parameters.get("testInfo")?.get(0)
 
             if(testClazz == null || testMethod == null || openPort == -1) {
                 println("AdbScreenRecorderHttpServer: GET ${session.uri} (400) - missing testClazz or testMethod")
@@ -47,7 +55,21 @@ class AdbScreenRecorderHttpServer(hostName: String?, port: Int, val adbPath: Str
                 )
             }
 
-            allKnownDevices += deviceName
+
+            if(deviceInfoJson != null) {
+                val deviceInfo = gson.fromJson(deviceInfoJson, DeviceInfo::class.java)
+                if(!allKnownDevices.containsKey(deviceName) || allKnownDevices[deviceName]?.sdkInt == -1) {
+                    deviceInfo.deviceName = deviceName
+                    allKnownDevices[deviceName] = deviceInfo
+                }
+            }else if(!allKnownDevices.containsKey(deviceName)) {
+                allKnownDevices[deviceName] = DeviceInfo(deviceName = deviceName)//put it in the list - but it is unknown
+            }
+
+            if(testInfoJson != null) {
+                println("Received test info JSON: $testInfoJson")
+                testResultsMap["$deviceName/$testClazz/$testMethod"] = gson.fromJson(testInfoJson, TestInfo::class.java)
+            }
 
             if(session.uri.startsWith("/startRecording")) {
                 println("(${dateFormatter.format(Date())}) ADBScreenRecord start recording request for $deviceName $testClazz.$testMethod ")
@@ -77,6 +99,120 @@ class AdbScreenRecorderHttpServer(hostName: String?, port: Int, val adbPath: Str
         }
 
         return newFixedLengthResponse(Response.Status.OK,  "text/plain", WELCOME_MESSAGE)
+    }
+
+    fun generateReport(projectName: String) {
+        println("Generating report. Have test info for ${testResultsMap.keys.joinToString()} ")
+        FileOutputStream(File(destDir, "adbscreenrecord.css")).use {fileOut ->
+            javaClass.getResourceAsStream("/adbscreenrecord.css").use { resourceIn ->
+                resourceIn.copyTo(fileOut)
+                fileOut.flush()
+            }
+        }
+
+
+        val fileWriter = FileWriter(File(destDir, "index.html"))
+
+        fileWriter.appendHTML().html {
+            head {
+                link(href="adbscreenrecord.css", rel="stylesheet", type="text/css")
+            }
+
+            body {
+                h2 {
+                    + "ADB Screen Recorder Report"
+                }
+                div(classes = "subtitle") {
+                    span(classes = "projectname") {
+                        + projectName
+                    }
+                    span(classes = "timestamp") {
+                        + DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(Date())
+                    }
+                }
+
+                table {
+                    tr {
+                        td {
+                            + " Device "
+                        }
+
+                        allKnownDevices.forEach {deviceName ->
+                            td(classes="devicetd") {
+                                + "${deviceName.value.manufacturer}  - ${deviceName.value.modelName}"
+                                br {}
+                                + "Android Version ${deviceName.value.androidRelease} (SDK ${deviceName.value.sdkInt})"
+                            }
+                        }
+                    }
+
+
+
+                    destDir.listFiles(FileFilter { it.isDirectory }).forEach {testClazzDir ->
+                        val clazzName = testClazzDir.name
+                        val clazzNameEntry = testResultsMap.entries.firstOrNull {
+                            it.key.contains("/$clazzName/") && it.value.clazzDesc != null }
+                        tr {
+                            th(classes= "classth" ) {
+                                colSpan = (allKnownDevices.size + 1).toString()
+                                val clazzDesc = clazzNameEntry?.value?.clazzDesc
+                                if(clazzDesc != null) {
+                                    span(classes = "classdesc") {
+                                        + clazzDesc
+                                    }
+                                    br {  }
+                                }
+                                span(classes = "classname") {
+                                    + clazzName
+                                }
+                            }
+                        }
+
+                        testClazzDir.listFiles(FileFilter { it.isDirectory }).forEach { testMethodDir ->
+                            tr {
+                                val methodName = testMethodDir.name
+                                td(classes = "methodtd") {
+                                    val methodNameEntry = testResultsMap.entries.firstOrNull { it.key.contains("/$clazzName/$methodName") }
+                                    val methodDesc = methodNameEntry?.value?.methodDesc
+                                    if(methodDesc != null) {
+                                        span(classes="methoddesc") {
+                                            + methodDesc
+                                        }
+                                        br { }
+                                    }
+                                    span(classes="methodname") {
+                                        + methodName
+                                    }
+                                }
+
+                                allKnownDevices.values.forEach { deviceInfo ->
+                                    val testInfo = testResultsMap["${deviceInfo.deviceName}/${testClazzDir.name}/${testMethodDir.name}"]
+                                    val tdCssClass = if(testInfo != null) {
+                                        MAP_STATUS_TO_CSS_CLASS[testInfo.status]
+                                    }else {
+                                        ""
+                                    }
+
+                                    td(classes = "testvideo $tdCssClass") {
+                                        if(File(testMethodDir, "${deviceInfo.deviceName}.mp4").exists()) {
+                                            video {
+                                                src = "${testClazzDir.name}/${testMethodDir.name}/${deviceInfo.deviceName}.mp4"
+                                                controls = true
+                                            }
+                                        }else {
+                                            + "No video"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        fileWriter.flush()
+        fileWriter.close()
     }
 
 
@@ -138,61 +274,11 @@ class AdbScreenRecorderHttpServer(hostName: String?, port: Int, val adbPath: Str
             return devices
         }
 
-        fun generateReport(baseDir: File, deviceNames: List<String>) {
-            val fileWriter = FileWriter(File(baseDir, "index.html"))
 
-            fileWriter.appendHTML().html {
-                body {
-                    table {
-                        tr {
-                            td {
-                                + " - "
-                            }
-
-                            deviceNames.forEach {deviceName ->
-                                td {
-                                    + deviceName
-                                }
-                            }
-                        }
-
-
-                        baseDir.listFiles(FileFilter { it.isDirectory }).forEach {testClazzDir ->
-                            tr {
-                                th {
-                                    colSpan = (deviceNames.size + 1).toString()
-                                    + "${testClazzDir.name}"
-                                }
-                            }
-
-                            testClazzDir.listFiles(FileFilter { it.isDirectory }).forEach { testMethodDir ->
-                                tr {
-                                    td {
-                                        + testMethodDir.name
-                                    }
-
-                                    deviceNames.forEach { deviceName ->
-                                        td {
-                                            if(File(testMethodDir, "$deviceName.mp4").exists()) {
-                                                video {
-                                                    src = "${testClazzDir.name}/${testMethodDir.name}/$deviceName.mp4"
-                                                    controls = true
-                                                }
-                                            }else {
-                                                + "No video"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            fileWriter.flush()
-            fileWriter.close()
-        }
+        val MAP_STATUS_TO_CSS_CLASS = mapOf(TestInfo.STATUS_FAIL to "fail",
+            TestInfo.STATUS_NOT_RUN to "notrun",
+            TestInfo.STATUS_PASS to "pass",
+            TestInfo.STATUS_SKIPPED to "skipped")
 
     }
 }
