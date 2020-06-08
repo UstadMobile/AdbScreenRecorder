@@ -10,11 +10,13 @@ Espresso test you run on each device.
 
 ### Getting started
 
+Add our bintray repo to your
+
 Add the plugin and dependencies to your build.gradle:
 ```
 //Apply the plugin
 plugins {
-    id "com.ustadmobile.adbscreenrecorder" version "0.1"
+    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha01"
 }
 
 ...
