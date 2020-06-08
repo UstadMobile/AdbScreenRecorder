@@ -10,7 +10,18 @@ Espresso test you run on each device.
 
 ### Getting started
 
-Add our bintray repo to your
+Add our bintray repo to your settings.gradle
+
+```
+pluginManagement {
+    repositories {
+        ...
+        maven {
+            url "https://dl.bintray.com/ustadmobile/adbscreenrecord"
+        }
+    }
+}
+```
 
 Add the plugin and dependencies to your build.gradle:
 ```
