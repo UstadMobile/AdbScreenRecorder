@@ -1,14 +1,16 @@
 
 ### Adb Screen Recorder for UI tests: seeing is believing
 
+![Image of report output](images/reportpic.png)
+
 How many times have users and clients said "why haven't you tested this?". Test reports and coverage
 percentages don't mean much to project managers, users, or people who haven't spent hours writing
 Espresso tests. ADB Screen Recorder makes it easy to record an individual video file for each
 Espresso test you run on each device.
 
-###Getting started
+### Getting started
 
-Add the plugin to your project:
+Add the plugin and dependencies to your build.gradle:
 ```
 //Apply the plugin
 plugins {
