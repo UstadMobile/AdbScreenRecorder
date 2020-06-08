@@ -1,6 +1,6 @@
 
 plugins {
-    id "com.ustadmobile.adbscreenrecorder" version "0.3-LOCAL40"
+    id "com.ustadmobile.adbscreenrecorder" version "0.3-LOCAL48"
 }
 
 apply plugin: 'com.android.application'
@@ -32,7 +32,6 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "ADB_RECORD_SERVER", "\"http://192.168.70.23:9004/\"")
     }
 
     buildTypes {

@@ -26,7 +26,7 @@ class ExampleInstrumentedTest {
 
     @JvmField
     @Rule
-    var adbScreenRecordRule = AdbScreenRecordRule(BuildConfig.ADB_RECORD_SERVER)
+    var adbScreenRecordRule = AdbScreenRecordRule()
 
     @AdbScreenRecord("Run a 15 second counter")
     @Test

@@ -1,6 +1,7 @@
 package com.ustadmobile.adbscreenrecorder.gradleplugin
 
 import com.ustadmobile.adbscreenrecorder.httpserver.AdbScreenRecorderHttpServer
+import com.ustadmobile.adbscreenrecorder.httpserver.AdbScreenRecorderHttpServer.Companion.listAndroidDevices
 import fi.iki.elonen.NanoHTTPD
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -11,6 +12,7 @@ import java.util.*
 
 
 
+@Suppress("unused")
 class AdbScreenRecorderPlugin : Plugin<Project> {
 
     private fun adbPathFromSdkDir(sdkDir: String) : String {
@@ -28,7 +30,7 @@ class AdbScreenRecorderPlugin : Plugin<Project> {
         val destination = project.file(destDir)
         destination.takeIf { !it.exists() }?.mkdirs()
 
-        var server: AdbScreenRecorderHttpServer? = null
+        var servers = mapOf<String, AdbScreenRecorderHttpServer>()
 
         val startTask = project.task("startAdbScreenRecordServer") {
             it.doLast {
@@ -61,20 +63,30 @@ class AdbScreenRecorderPlugin : Plugin<Project> {
                     throw IllegalStateException("ADBPath found $adbPath is not valid!")
                 }
 
-                server = AdbScreenRecorderHttpServer(null, extension.port,
-                    adbPath ?: "", destination)
+                val devicesList = listAndroidDevices(adbPath)
 
-                server?.start(NanoHTTPD.SOCKET_READ_TIMEOUT, true)
+                servers = devicesList.map { deviceName ->
+                    val adbServer = AdbScreenRecorderHttpServer(deviceName, adbPath, destination)
+                    adbServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT, true)
+                    adbServer.startPortForwarding()
+
+                    deviceName to adbServer
+                }.toMap()
             }
         }
 
         val stopTask = project.task("stopAdbScreenRecordServer") {
             it.doLast {
-                server?.also {
-                    it.generateReport(projectName = "${project.displayName} ")
+                servers.values.forEach {
+                    it.stop()
+                    it.stopPortForwarding()
                 }
-                server?.stop()
-                server = null
+
+                val devicesMap = servers.map { it.value.deviceName to it.value.deviceInfo}.toMap()
+                val testResultMap = servers.map { it.value.deviceName to it.value.testResultsMap}.toMap()
+
+                AdbScreenRecorderHttpServer.generateReport(project.displayName,
+                    destination, devicesMap, testResultMap)
             }
         }
 
