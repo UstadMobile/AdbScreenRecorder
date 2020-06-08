@@ -1,3 +1,9 @@
+plugins {
+    id 'maven-publish'
+    id "com.jfrog.bintray" version "1.8.5"
+}
+
+
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
@@ -24,6 +30,28 @@ android {
     }
 }
 
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+
+                groupId = rootProject.group
+                artifactId = project.name
+                version = rootProject.version
+            }
+
+            debug(MavenPublication) {
+                from components.debug
+
+                groupId = rootProject.group
+                artifactId = "${project.name}-debug"
+                version = rootProject.version
+            }
+        }
+    }
+}
+
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -36,3 +64,24 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
 }
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    publications = ['release', 'debug']
+    pkg {
+        version {
+            name = rootProject.version
+            desc = rootProject.version
+            released = new Date()
+        }
+
+        repo = 'adbscreenrecordtest'
+        userOrg = 'ustadmobile'
+        name = project.name
+        licenses = ['MIT']
+        vcsUrl = 'https://github.com/UstadMobile/AdbScreenRecorder'
+    }
+}
+
+

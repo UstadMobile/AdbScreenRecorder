@@ -3,6 +3,7 @@ plugins {
     id 'java-gradle-plugin'
     id 'kotlin'
     id 'maven-publish'
+    id "com.jfrog.bintray" version "1.8.5"
 }
 
 gradlePlugin {
@@ -11,6 +12,26 @@ gradlePlugin {
             id = 'com.ustadmobile.adbscreenrecorder'
             implementationClass = 'com.ustadmobile.adbscreenrecorder.gradleplugin.AdbScreenRecorderPlugin'
         }
+    }
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    publications = ['maven']
+    pkg {
+        version {
+            name = rootProject.version
+            desc = rootProject.version
+            released = new Date()
+            //attributes = ['gradle-plugin': 'com.use.less:com.use.less.gradle:gradle-useless-plugin']
+        }
+
+        repo = 'adbscreenrecordtest'
+        userOrg = 'ustadmobile'
+        name = project.name
+        licenses = ['MIT']
+        vcsUrl = 'https://github.com/UstadMobile/AdbScreenRecorder'
     }
 }
 
