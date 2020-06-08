@@ -76,7 +76,7 @@ bintray {
             released = new Date()
         }
 
-        repo = 'adbscreenrecordtest'
+        repo = 'adbscreenrecord'
         userOrg = 'ustadmobile'
         name = project.name
         licenses = ['MIT']

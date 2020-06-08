@@ -41,10 +41,9 @@ bintray {
             name = rootProject.version
             desc = rootProject.version
             released = new Date()
-            //attributes = ['gradle-plugin': 'com.use.less:com.use.less.gradle:gradle-useless-plugin']
         }
 
-        repo = 'adbscreenrecordtest'
+        repo = 'adbscreenrecord'
         userOrg = 'ustadmobile'
         name = project.name
         licenses = ['MIT']
