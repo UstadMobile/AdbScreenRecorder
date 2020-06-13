@@ -5,12 +5,15 @@ import com.ustadmobile.adbscreenrecorder.httpserver.AdbScreenRecorderHttpServer.
 import fi.iki.elonen.NanoHTTPD
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import java.io.File
 import java.lang.IllegalStateException
 import java.nio.file.Paths
 import java.util.*
 
 
+private fun Task.isAndroidTest() = name.toLowerCase().endsWith("androidtest") ||
+        name.toLowerCase().endsWith("connectedcheck")
 
 @Suppress("unused")
 class AdbScreenRecorderPlugin : Plugin<Project> {
@@ -90,9 +93,13 @@ class AdbScreenRecorderPlugin : Plugin<Project> {
             }
         }
 
+        project.tasks.filter { it.isAndroidTest() }.forEach {
+            it.dependsOn(startTask)
+            it.finalizedBy(stopTask)
+        }
+
         project.tasks.whenTaskAdded {task ->
-            if(task.name.toLowerCase().endsWith("androidtest") ||
-                task.name.toLowerCase().endsWith("connectedcheck")) {
+            if(task.isAndroidTest()) {
                 task.dependsOn(startTask)
                 task.finalizedBy(stopTask)
             }

@@ -12,7 +12,6 @@ import org.junit.runner.Description
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
-import kotlin.IllegalStateException
 
 fun buildDeviceInfo() = DeviceInfo(Build.VERSION.RELEASE, Build.VERSION.SDK_INT, Build.MODEL, Build.BRAND)
 
@@ -42,14 +41,12 @@ class AdbScreenRecordRule(val localPort: Int = DEFAULT_DEVICE_PORT, val enabled:
         try {
             urlConnection = url.openConnection() as HttpURLConnection
             if(urlConnection.responseCode != 200) {
-                Log.e(LOGTAG, "ERR: Got response ${urlConnection.responseCode} for request: $url")
-                throw IllegalStateException("Connected, Non-200 response code: ${urlConnection.responseCode} AdbScreenRecord cannot connect to server http://localhost:$localPort")
+                Log.w(LOGTAG, "ERR: Got response ${urlConnection.responseCode} for request: $url")
             }
         }catch(e: Exception) {
             e.printStackTrace()
-            Log.e(LOGTAG, "ERR: Exception sending AdbScreenRecord request to $url : " +
+            Log.w(LOGTAG, "ERR: Exception sending AdbScreenRecord request to $url : " +
                     "please check the server url and make sure this server is accessible from the device")
-            throw IllegalStateException("AdbScreenRecord cannot connect to server http://localhost:$localPort", e)
         }finally {
             urlConnection?.disconnect()
         }
