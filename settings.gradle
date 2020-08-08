@@ -5,6 +5,9 @@ pluginManagement {
             url "https://dl.bintray.com/ustadmobile/adbscreenrecord"
         }
 
+//        Use mavenLocal for development and testing
+//        mavenLocal()
+
         jcenter()
         mavenCentral()
         maven {

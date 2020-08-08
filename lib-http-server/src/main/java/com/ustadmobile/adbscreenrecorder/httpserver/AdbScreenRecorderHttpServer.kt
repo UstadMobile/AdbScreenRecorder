@@ -6,10 +6,7 @@ import com.ustadmobile.adbscreenrecorder.TestInfo
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
-import java.io.File
-import java.io.FileFilter
-import java.io.FileOutputStream
-import java.io.FileWriter
+import java.io.*
 import java.lang.IllegalStateException
 import java.text.DateFormat
 import java.util.*
@@ -38,7 +35,7 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
             "tcp:$devicePort", "tcp:$listeningPort"))
             .start()
             .waitFor(5, TimeUnit.SECONDS)
-        println("AdbScreenRecorderHttp forwarding device port $devicePort to local port $listeningPort")
+        println("AdbScreenRecorderHttp forwarding $deviceName device port $devicePort to local port $listeningPort")
     }
 
     fun stopPortForwarding() {
@@ -117,6 +114,17 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
             | * testMethod Method name of the test that is running
         """.trimMargin()
 
+        internal fun runProcess(cmd: List<String>, timeout: Long = 10): InputStream {
+            val proc = ProcessBuilder(cmd)
+                .redirectOutput(ProcessBuilder.Redirect.PIPE)
+                .redirectError(ProcessBuilder.Redirect.PIPE)
+                .start().also {
+                    it.waitFor(timeout, TimeUnit.SECONDS)
+                }
+
+            return proc.inputStream
+        }
+
         fun listAndroidDevices(adbPath: String): List<String> {
             val proc = ProcessBuilder(listOf(adbPath, "devices"))
                 .redirectOutput(ProcessBuilder.Redirect.PIPE)
@@ -130,8 +138,29 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
             return devices
         }
 
+        fun getAndroidSdkVersion(adbPath: String, deviceName: String): Int {
+            return runProcess(listOf(adbPath, "-s", deviceName, "shell", "getprop", "ro.build.version.sdk"), 10)
+                .bufferedReader().readText().trim().toIntOrNull() ?: -1
+        }
+
+        fun getWindowIdForDevice(wmCtrlPath: String, deviceName: String): String? {
+            val devicePort = deviceName.substringAfter("-").toIntOrNull() ?: return null
+            val windowList = runProcess(listOf(wmCtrlPath, "-l")).bufferedReader().readText().lines()
+            return windowList.firstOrNull { it.endsWith(":$devicePort") }?.split("\\s".toRegex(), 2)?.get(0)
+        }
+
+        private fun File.findVideoInDir(deviceName: String): File? {
+            for(f in listOf(File(this, "$deviceName.mp4"), File(this, "$deviceName.ogv"))) {
+                if(f.exists())
+                    return f
+            }
+
+            return null
+        }
+
         fun generateReport(projectName: String, destDir: File, devices: Map<String, DeviceInfo>, testResults: Map<String, Map<String, TestInfo>>) {
             val gson = Gson()
+            destDir.mkdirs() //this should have already been created, but would be empty if no tests have been recorded
             FileOutputStream(File(destDir, "adbscreenrecord.css")).use {fileOut ->
                 AdbScreenRecorderHttpServer::class.java.getResourceAsStream("/adbscreenrecord.css").use { resourceIn ->
                     resourceIn.copyTo(fileOut)
@@ -227,14 +256,21 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
                                         }
 
                                         td(classes = "testvideo $tdCssClass") {
-                                            val videoFile = File(testMethodDir, "${deviceInfo.deviceName}.mp4")
-                                            if(videoFile.exists()) {
+                                            //val videoFile = File(testMethodDir, "${deviceInfo.deviceName}.mp4")
+                                            val videoFile = testMethodDir.findVideoInDir(deviceInfo.deviceName)
+                                            if(videoFile != null) {
                                                 video {
-                                                    src = "${testClazzDir.name}/${testMethodDir.name}/${deviceInfo.deviceName}.mp4"
+                                                    src = "${testClazzDir.name}/${testMethodDir.name}/${videoFile.name}"
                                                     controls = true
+                                                    attributes["preload"] = "none"
+
+                                                    val coverImageFile = File(testMethodDir, "${deviceInfo.deviceName}.jpg")
+                                                    if(coverImageFile.exists()) {
+                                                        poster = "${testClazzDir.name}/${testMethodDir.name}/${coverImageFile.name}"
+                                                    }
                                                 }
                                             }else {
-                                                + "No video ${videoFile.absolutePath}"
+                                                + "[No video]"
                                             }
                                         }
                                     }

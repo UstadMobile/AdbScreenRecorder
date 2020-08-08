@@ -27,7 +27,7 @@ Add the plugin and dependencies to your build.gradle:
 ```
 //Apply the plugin
 plugins {
-    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha01"
+    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha04"
 }
 
 ...
@@ -82,3 +82,14 @@ test rule on the client can connect to it and send requests to start/stop record
 start and finish. The port forwarding operates independently of the connectivity of the device
 and works as long as adb is connected.
 
+### Android 5 limitations and workaround
+
+Emulators running Android 5 and below do not support adb screenrecord as per [this issue](https://issuetracker.google.com/issues/36982354).
+AdbScreenRecord supports using the recordmydesktop command on Ubuntu (and possibly other Linux) versions
+as a workaround. For this to work, you must install the required packages:
+
+```
+$ sudo apt-get install wmctrl recordmydesktop
+```
+
+You must also ensure that the emulator window is not covered by any other window.

@@ -11,6 +11,7 @@ dependencies {
     implementation project(":lib-shared")
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.1")
+    implementation "net.coobird:thumbnailator:0.4.11"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation "com.google.code.gson:gson:2.8.6"
     testImplementation 'junit:junit:4.12'
