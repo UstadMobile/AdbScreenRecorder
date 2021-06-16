@@ -14,20 +14,20 @@ class AdbScreenRecorderHttpServerTest  {
     @Rule
     val temporaryFolder = TemporaryFolder()
 
-    @Test
+    //@Test
     fun givenAdbOnPath_shouldFindDeviceList() {
         val deviceList = listAndroidDevices("/home/mike/Android/Sdk/platform-tools/adb")
         println(deviceList)
     }
 
-    @Test
+    //@Test
     fun givenRunningDevice_shouldGetSdkVersion() {
         val deviceToTry = listAndroidDevices("/home/mike/Android/Sdk/platform-tools/adb").first()
         val sdkInt = getAndroidSdkVersion("/home/mike/Android/Sdk/platform-tools/adb", deviceToTry)
         Assert.assertTrue("Got SDK Int", sdkInt > 0)
     }
 
-    @Test
+    //@Test
     fun testRunningHttpServer() {
         val tmpDir = temporaryFolder.newFolder("adbscreenrecord")
         val server = AdbScreenRecorderHttpServer("emulator-5554",
