@@ -3,7 +3,6 @@ plugins {
     id 'java-gradle-plugin'
     id 'kotlin'
     id 'maven-publish'
-    id "com.jfrog.bintray" version "1.8.5"
 }
 
 gradlePlugin {
@@ -15,31 +14,12 @@ gradlePlugin {
     }
 }
 
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
-    publications = ['maven']
-    pkg {
-        version {
-            name = rootProject.version
-            desc = rootProject.version
-            released = new Date()
-        }
-
-        repo = 'adbscreenrecord'
-        userOrg = 'ustadmobile'
-        name = project.name
-        licenses = ['MIT']
-        vcsUrl = 'https://github.com/UstadMobile/AdbScreenRecorder'
-    }
-}
-
-
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation "com.google.code.gson:gson:2.8.6"
-    implementation "org.nanohttpd:nanohttpd:2.3.1"
+    implementation "com.google.code.gson:gson:$version_gson"
+    implementation "org.nanohttpd:nanohttpd:$version_nanohttpd"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     implementation project(":lib-shared")
     implementation project(":lib-http-server")
 }
@@ -57,4 +37,11 @@ publishing {
             from components.java
         }
     }
+
+    repositories {
+        maven {
+            url rootProject.ext.buildConfigProperties['repo.dir']
+        }
+    }
+
 }

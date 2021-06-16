@@ -1,14 +1,18 @@
 package com.ustadmobile.adbscreenrecorder.httpserver
 
 import com.ustadmobile.adbscreenrecorder.httpserver.AdbScreenRecorderHttpServer.Companion.getAndroidSdkVersion
-import com.ustadmobile.adbscreenrecorder.httpserver.AdbScreenRecorderHttpServer.Companion.getWindowIdForDevice
 import com.ustadmobile.adbscreenrecorder.httpserver.AdbScreenRecorderHttpServer.Companion.listAndroidDevices
 import fi.iki.elonen.NanoHTTPD
 import org.junit.Assert
+import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Files
+import org.junit.rules.TemporaryFolder
 
 class AdbScreenRecorderHttpServerTest  {
+
+    @JvmField
+    @Rule
+    val temporaryFolder = TemporaryFolder()
 
     @Test
     fun givenAdbOnPath_shouldFindDeviceList() {
@@ -24,18 +28,10 @@ class AdbScreenRecorderHttpServerTest  {
     }
 
     @Test
-    fun givenRunningDevice_shouldGetWindowId() {
-        val deviceToTry = listAndroidDevices("/home/mike/Android/Sdk/platform-tools/adb").first()
-        val emulatorWindowId = getWindowIdForDevice("/usr/bin/wmctrl", deviceToTry)
-        println(emulatorWindowId)
-        Assert.assertNotNull(emulatorWindowId)
-    }
-
-    @Test
     fun testRunningHttpServer() {
-        val tmpDir = Files.createTempDirectory("screenrecordhttp").toFile()
+        val tmpDir = temporaryFolder.newFolder("adbscreenrecord")
         val server = AdbScreenRecorderHttpServer("emulator-5554",
-            "/home/user/Android/Sdk/platform-tools/adb", tmpDir)
+            "/home/mike/Android/Sdk/platform-tools/adb", tmpDir)
         server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
         server.startPortForwarding()
         println("NanoHTTPD is running on port 8081")

@@ -1,7 +1,4 @@
 
-plugins {
-    id "com.jfrog.bintray" version "1.8.5"
-}
 
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
@@ -9,7 +6,7 @@ apply plugin: 'maven-publish'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
 
 sourceCompatibility = "1.8"
@@ -25,23 +22,11 @@ publishing {
             from components.java
         }
     }
-}
 
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
-    publications = ['maven']
-    pkg {
-        version {
-            name = rootProject.version
-            desc = rootProject.version
-            released = new Date()
+    repositories {
+        maven {
+            url rootProject.ext.buildConfigProperties['repo.dir']
         }
-
-        repo = 'adbscreenrecord'
-        userOrg = 'ustadmobile'
-        name = project.name
-        licenses = ['MIT']
-        vcsUrl = 'https://github.com/UstadMobile/AdbScreenRecorder'
     }
+
 }

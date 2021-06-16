@@ -3,18 +3,17 @@ plugins {
     id 'java-library'
     id 'kotlin'
     id 'maven-publish'
-    id "com.jfrog.bintray" version "1.8.5"
 }
 
 dependencies {
-    implementation "org.nanohttpd:nanohttpd:2.3.1"
+    implementation "org.nanohttpd:nanohttpd:$version_nanohttpd"
     implementation project(":lib-shared")
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.1")
-    implementation "net.coobird:thumbnailator:0.4.11"
+    implementation "org.jetbrains.kotlinx:kotlinx-html-jvm:$version_kotlinx_html"
+    implementation "net.coobird:thumbnailator:$version_thumbnailator"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation "com.google.code.gson:gson:2.8.6"
-    testImplementation 'junit:junit:4.12'
+    implementation "com.google.code.gson:gson:$version_gson"
+    testImplementation "junit:junit:$version_junit"
 }
 
 sourceCompatibility = "1.8"
@@ -30,25 +29,12 @@ publishing {
             from components.java
         }
     }
-}
 
-
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
-    publications = ['maven']
-    pkg {
-        version {
-            name = rootProject.version
-            desc = rootProject.version
-            released = new Date()
+    repositories {
+        maven {
+            url rootProject.ext.buildConfigProperties['repo.dir']
         }
-
-        repo = 'adbscreenrecord'
-        userOrg = 'ustadmobile'
-        name = project.name
-        licenses = ['MIT']
-        vcsUrl = 'https://github.com/UstadMobile/AdbScreenRecorder'
     }
+
 }
 
