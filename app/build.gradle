@@ -1,6 +1,8 @@
 
+//The plugin block can be uncommented after lib-gradle-plugin has been built and published.
+
 //plugins {
-//    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha06"
+//    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha07"
 //}
 
 apply plugin: 'com.android.application'
@@ -13,8 +15,8 @@ apply plugin: 'digital.wup.android-maven-publish'
 //}
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
 
     kotlinOptions {
         jvmTarget = "1.8"
@@ -28,7 +30,7 @@ android {
     defaultConfig {
         applicationId "com.ustadmobile.espressoscreenrecorder"
         minSdkVersion 16
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 

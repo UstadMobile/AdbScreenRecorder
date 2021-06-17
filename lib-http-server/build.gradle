@@ -11,7 +11,6 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlinx:kotlinx-html-jvm:$version_kotlinx_html"
     implementation "net.coobird:thumbnailator:$version_thumbnailator"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation "com.google.code.gson:gson:$version_gson"
     testImplementation "junit:junit:$version_junit"
 }

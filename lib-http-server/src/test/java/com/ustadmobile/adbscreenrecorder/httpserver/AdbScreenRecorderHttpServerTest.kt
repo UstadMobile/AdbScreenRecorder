@@ -3,10 +3,14 @@ package com.ustadmobile.adbscreenrecorder.httpserver
 import com.ustadmobile.adbscreenrecorder.httpserver.AdbScreenRecorderHttpServer.Companion.getAndroidSdkVersion
 import com.ustadmobile.adbscreenrecorder.httpserver.AdbScreenRecorderHttpServer.Companion.listAndroidDevices
 import fi.iki.elonen.NanoHTTPD
+import kotlinx.html.*
+import kotlinx.html.stream.appendHTML
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
+import java.io.FileWriter
 
 class AdbScreenRecorderHttpServerTest  {
 
@@ -35,6 +39,28 @@ class AdbScreenRecorderHttpServerTest  {
         server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
         server.startPortForwarding()
         println("NanoHTTPD is running on port 8081")
+    }
+
+    @Test
+    fun generateReport() {
+        val htmlFile = File(temporaryFolder.newFolder(), "index.html")
+        val fileWriter = FileWriter(htmlFile)
+        fileWriter.appendHTML().html {
+            head {
+                link(href = "adbscreenrecord.css", rel = "stylesheet", type = "text/css")
+            }
+
+            body {
+                h2 {
+                    +"ADB Screen Recorder Report"
+                }
+            }
+        }
+        fileWriter.flush()
+        fileWriter.close()
+
+        val textInHtml = htmlFile.readText()
+        println(textInHtml)
     }
 
 }

@@ -16,12 +16,12 @@ gradlePlugin {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation "com.google.code.gson:gson:$version_gson"
     implementation "org.nanohttpd:nanohttpd:$version_nanohttpd"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     implementation project(":lib-shared")
     implementation project(":lib-http-server")
+    implementation "org.jetbrains.kotlinx:kotlinx-html-jvm:$version_kotlinx_html"
 }
 
 sourceCompatibility = "1.8"

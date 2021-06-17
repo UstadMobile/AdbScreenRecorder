@@ -159,7 +159,6 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
         }
 
         fun generateReport(projectName: String, destDir: File, devices: Map<String, DeviceInfo>, testResults: Map<String, Map<String, TestInfo>>) {
-            val gson = Gson()
             destDir.mkdirs() //this should have already been created, but would be empty if no tests have been recorded
             FileOutputStream(File(destDir, "adbscreenrecord.css")).use {fileOut ->
                 AdbScreenRecorderHttpServer::class.java.getResourceAsStream("/adbscreenrecord.css").use { resourceIn ->

@@ -5,7 +5,7 @@ pluginManagement {
             url "https://devserver3.ustadmobile.com/maven"
         }
 
-//        Use mavenLocal for development and testing
+        //Maven local is used to ensure that the app module can build
         mavenLocal()
 
         mavenCentral()
