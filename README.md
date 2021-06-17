@@ -10,14 +10,17 @@ Espresso test you run on each device.
 
 ### Getting started
 
-Add our bintray repo to your settings.gradle
+This plugin requires Gradle 7.1+. Gradle 6x versions use Kotlin 1.3, which causes the report output
+to throw a NoSuchMethodException.
+
+Add our repo to your settings.gradle
 
 ```
 pluginManagement {
     repositories {
         ...
         maven {
-            url "https://dl.bintray.com/ustadmobile/adbscreenrecord"
+            url "https://devserver3.ustadmobile.com/maven"
         }
     }
 }
@@ -27,14 +30,14 @@ Add the plugin and dependencies to your build.gradle:
 ```
 //Apply the plugin
 plugins {
-    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha04"
+    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha07"
 }
 
 ...
 
 //Add the dependency for the test rule
 dependencies {
-    androidTestImplementation "com.ustadmobile.adbscreenrecorder:lib-client:0.1"
+    androidTestImplementation "com.ustadmobile.adbscreenrecorder:lib-client:0.1-alpha07"
 }
 
 //Optionally configure the output directory
