@@ -10,18 +10,30 @@ buildscript {
         maven {
             url 'https://plugins.gradle.org/m2/'
         }
+        maven {
+            url 'https://jitpack.io'
+        }
+
+
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.1.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.github.ben-manes:gradle-versions-plugin:$version_gradle_versions_plugin"
 
+        //Using a Gradle plugin as a project does not seem to cooperate here.
+        // Therefor we are using a published version here.
+        //
+        // When developing, publish to maven local, then update the version number below
+        // This is used in the 'app' module to run a test.
+        classpath "com.github.UstadMobile.AdbScreenRecorder:lib-gradle-plugin:0.1-alpha11"
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
-version = "0.1-alpha11"
+version = "0.1-alpha12"
 group = "com.ustadmobile.adbscreenrecorder"
 
 allprojects {

@@ -2,6 +2,8 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="1.8">
+      <module name="AdbScreenRecorder.app" target="11" />
+      <module name="AdbScreenRecorder.lib-client" target="11" />
       <module name="EspressoScreenRecorder.app" target="11" />
       <module name="EspressoScreenRecorder.lib-client" target="11" />
       <module name="lib-gradle-plugin" target="1.7" />

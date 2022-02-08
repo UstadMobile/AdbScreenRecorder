@@ -1,17 +1,14 @@
 
 //The plugin block can be uncommented after lib-gradle-plugin has been built and published.
 
-//plugins {
-//    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha10c"
-//}
+plugins {
+    id "com.ustadmobile.adbscreenrecorder"
+}
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-//adbScreenRecord {
-//
-//}
 
 android {
     compileSdkVersion 32

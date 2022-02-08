@@ -22,5 +22,5 @@ include ':lib-gradle-plugin'
 include ':app'
 include ':lib-client'
 
-rootProject.name = "EspressoScreenRecorder"
+rootProject.name = "AdbScreenRecorder"
 
