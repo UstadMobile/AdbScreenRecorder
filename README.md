@@ -10,8 +10,7 @@ Espresso test you run on each device.
 
 ### Getting started
 
-This plugin requires Gradle 7.1+. Gradle 6x versions use Kotlin 1.3, which causes the report output
-to throw a NoSuchMethodException.
+This plugin requires Gradle 7.1+.
 
 Add our repo to your settings.gradle
 
@@ -30,14 +29,14 @@ Add the plugin and dependencies to your build.gradle:
 ```
 //Apply the plugin
 plugins {
-    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha07"
+    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha08"
 }
 
 ...
 
 //Add the dependency for the test rule
 dependencies {
-    androidTestImplementation "com.ustadmobile.adbscreenrecorder:lib-client:0.1-alpha07"
+    androidTestImplementation "com.ustadmobile.adbscreenrecorder:lib-client:0.1-alpha08"
 }
 
 //Optionally configure the output directory

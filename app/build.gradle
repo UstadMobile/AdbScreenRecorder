@@ -2,20 +2,19 @@
 //The plugin block can be uncommented after lib-gradle-plugin has been built and published.
 
 //plugins {
-//    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha07"
+//    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha10c"
 //}
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-apply plugin: 'digital.wup.android-maven-publish'
 
 //adbScreenRecord {
-//    port = 9004
+//
 //}
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 32
     buildToolsVersion "30.0.3"
 
     kotlinOptions {
@@ -30,7 +29,7 @@ android {
     defaultConfig {
         applicationId "com.ustadmobile.espressoscreenrecorder"
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdkVersion 32
         versionCode 1
         versionName "1.0"
 
@@ -57,25 +56,4 @@ dependencies {
     androidTestImplementation "androidx.test:core-ktx:$version_android_junit_runner"
     testImplementation "junit:junit:$version_junit"
     androidTestImplementation "androidx.test.ext:junit:$version_androidx_test_ext_junit"
-}
-
-publishing {
-    publications {
-        //For the moment - publish only vanilla debug variant. Can publish others as per:
-        // https://github.com/wupdigital/android-maven-publish
-        mavenLocalconfigAar(MavenPublication) {
-            from components.findByName("androidDebug")
-            groupId rootProject.group
-            artifactId project.name
-            version rootProject.version
-        }
-
-    }
-
-    repositories {
-        //Set this in projectdir/extrasettings.gradle
-        maven {
-            url rootProject.ext.buildConfigProperties['repo.dir']
-        }
-    }
 }

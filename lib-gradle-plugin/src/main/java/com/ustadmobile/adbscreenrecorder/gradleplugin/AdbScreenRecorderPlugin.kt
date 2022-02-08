@@ -6,14 +6,15 @@ import fi.iki.elonen.NanoHTTPD
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.logging.LogLevel
 import java.io.File
 import java.lang.IllegalStateException
 import java.nio.file.Paths
 import java.util.*
 
 
-private fun Task.isAndroidTest() = name.toLowerCase().endsWith("androidtest") ||
-        name.toLowerCase().endsWith("connectedcheck")
+private fun Task.isAndroidTest() = name.lowercase().endsWith("androidtest") ||
+        name.lowercase().endsWith("connectedcheck")
 
 @Suppress("unused")
 class AdbScreenRecorderPlugin : Plugin<Project> {
@@ -27,9 +28,11 @@ class AdbScreenRecorderPlugin : Plugin<Project> {
     }
 
     override fun apply(project: Project) {
-        val extension = project.extensions.create("adbScreenRecord", AdbScreenRecorderExtension::class.java)
+        val extension = project.extensions.create("adbScreenRecord",
+            AdbScreenRecorderExtension::class.java)
 
-        val destDir = extension.destDir ?: "${project.buildDir.absolutePath}${File.separator}reports${File.separator}adbScreenRecord"
+        val destDir = extension.destDir
+            ?: "${project.buildDir.absolutePath}${File.separator}reports${File.separator}adbScreenRecord"
         val destination = project.file(destDir)
         destination.takeIf { !it.exists() }?.mkdirs()
 
@@ -61,7 +64,8 @@ class AdbScreenRecorderPlugin : Plugin<Project> {
 
                 if(adbPath == null)
                     throw IllegalStateException("AdbScreenRecorderPlugin cannot find adb. " +
-                            "Please specify it in the config block, local.properties or set ANDROID_HOME environment")
+                            "Please specify it in the config block, local.properties or set " +
+                            "ANDROID_HOME environment variable")
                 if(adbPath.isBlank() || !File(adbPath).exists()) {
                     throw IllegalStateException("ADBPath found $adbPath is not valid!")
                 }
@@ -69,7 +73,9 @@ class AdbScreenRecorderPlugin : Plugin<Project> {
                 val devicesList = listAndroidDevices(adbPath)
 
                 servers = devicesList.map { deviceName ->
-                    val adbServer = AdbScreenRecorderHttpServer(deviceName, adbPath, destination)
+                    val adbServer = AdbScreenRecorderHttpServer(deviceName, adbPath, destination,
+                        logLevel = logLevelMap[project.logging.level]
+                            ?: AdbScreenRecorderHttpServer.AdbRecorderLogLevel.NORMAL)
                     adbServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT, true)
                     adbServer.startPortForwarding()
 
@@ -104,5 +110,11 @@ class AdbScreenRecorderPlugin : Plugin<Project> {
                 task.finalizedBy(stopTask)
             }
         }
+    }
+
+    companion object {
+        val logLevelMap = mapOf(
+            LogLevel.DEBUG to AdbScreenRecorderHttpServer.AdbRecorderLogLevel.DEBUG,
+            LogLevel.INFO to AdbScreenRecorderHttpServer.AdbRecorderLogLevel.INFO)
     }
 }

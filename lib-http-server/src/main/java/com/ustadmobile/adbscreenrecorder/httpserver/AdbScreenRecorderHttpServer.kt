@@ -14,11 +14,23 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 
-class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, val destDir: File, val devicePort: Int = DEFAULT_DEVICE_PORT, hostName: String? = null, port: Int = 0)  : NanoHTTPD(hostName, port) {
+class AdbScreenRecorderHttpServer(
+    val deviceName: String,
+    private val adbPath: String,
+    destDir: File,
+    private val devicePort: Int = DEFAULT_DEVICE_PORT,
+    hostName: String? = null,
+    port: Int = 0,
+    private val logLevel: AdbRecorderLogLevel = AdbRecorderLogLevel.NORMAL
+)  : NanoHTTPD(hostName, port) {
 
-    val recordingManager = RecordingManager(adbPath, destDir)
+    enum class AdbRecorderLogLevel {
+        NORMAL, INFO, DEBUG
+    }
 
-    val dateFormatter = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG)
+    private val recordingManager = RecordingManager(adbPath, destDir)
+
+    private val dateFormatter = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG)
 
     var deviceInfo = DeviceInfo()
 
@@ -35,7 +47,10 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
             "tcp:$devicePort", "tcp:$listeningPort"))
             .start()
             .waitFor(5, TimeUnit.SECONDS)
-        println("AdbScreenRecorderHttp forwarding $deviceName device port $devicePort to local port $listeningPort")
+
+        if(logLevel == AdbRecorderLogLevel.DEBUG)
+            println("AdbScreenRecorderHttp forwarding $deviceName device port $devicePort to " +
+                    "local port $listeningPort")
     }
 
     fun stopPortForwarding() {
@@ -54,7 +69,7 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
 
             if(testClazz == null || testMethod == null) {
                 println("AdbScreenRecorderHttpServer: GET ${session.uri} (400) - missing testClazz or testMethod")
-                return newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_REQUEST,
+                return newFixedLengthResponse(Response.Status.BAD_REQUEST,
                     "text/plain", "missing testClazz or testMethod")
             }
 
@@ -74,7 +89,10 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
             }
 
             if(session.uri.startsWith("/startRecording")) {
-                println("(${dateFormatter.format(Date())}) ADBScreenRecord start recording request for $deviceName $testClazz.$testMethod ")
+                if(logLevel == AdbRecorderLogLevel.INFO || logLevel == AdbRecorderLogLevel.DEBUG)
+                    println("(${dateFormatter.format(Date())}) ADBScreenRecord start recording " +
+                            "request for $deviceName $testClazz.$testMethod ")
+
                 try {
                     recordingManager.startRecording(deviceName, testClazz, testMethod)
                     return newFixedLengthResponse("ADB recording started OK")
@@ -86,7 +104,9 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
                 }
 
             }else {
-                println("(${dateFormatter.format(Date())}) ADBScreenRecord stop recording request ${session.uri}")
+                if(logLevel == AdbRecorderLogLevel.INFO || logLevel == AdbRecorderLogLevel.DEBUG)
+                    println("(${dateFormatter.format(Date())}) ADBScreenRecord stop recording " +
+                            "request ${session.uri}")
                 try {
                     val destFile = recordingManager.stopRecording(deviceName, testClazz, testMethod)
                     return newFixedLengthResponse("ADB recording stopped and saved to ${destFile.absolutePath}")
@@ -161,7 +181,7 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
         fun generateReport(projectName: String, destDir: File, devices: Map<String, DeviceInfo>, testResults: Map<String, Map<String, TestInfo>>) {
             destDir.mkdirs() //this should have already been created, but would be empty if no tests have been recorded
             FileOutputStream(File(destDir, "adbscreenrecord.css")).use {fileOut ->
-                AdbScreenRecorderHttpServer::class.java.getResourceAsStream("/adbscreenrecord.css").use { resourceIn ->
+                AdbScreenRecorderHttpServer::class.java.getResourceAsStream("/adbscreenrecord.css")?.use { resourceIn ->
                     resourceIn.copyTo(fileOut)
                     fileOut.flush()
                 }
@@ -205,7 +225,7 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
 
 
 
-                        destDir.listFiles(FileFilter { it.isDirectory }).forEach {testClazzDir ->
+                        destDir.listFiles(FileFilter { it.isDirectory })?.forEach {testClazzDir ->
                             val clazzName = testClazzDir.name
 
                             val clazzNameEntry = testResults.values.flatMap { it.entries }
@@ -227,7 +247,7 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
                                 }
                             }
 
-                            testClazzDir.listFiles(FileFilter { it.isDirectory }).forEach { testMethodDir ->
+                            testClazzDir.listFiles(FileFilter { it.isDirectory })?.forEach { testMethodDir ->
                                 tr {
                                     val methodName = testMethodDir.name
                                     td(classes = "methodtd") {
@@ -282,6 +302,7 @@ class AdbScreenRecorderHttpServer(val deviceName: String, val adbPath: String, v
 
             fileWriter.flush()
             fileWriter.close()
+            println("Adb Screen Recorder report saved to: ${destDir.absolutePath}/index.html")
         }
 
 
