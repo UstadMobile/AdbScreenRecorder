@@ -2,7 +2,7 @@ pluginManagement {
     repositories {
 
         maven {
-            url "https://devserver3.ustadmobile.com/maven"
+            url "https://jitpack.io/"
         }
 
         //Maven local is used to ensure that the app module can build

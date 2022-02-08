@@ -12,31 +12,41 @@ Espresso test you run on each device.
 
 This plugin requires Gradle 7.1+.
 
-Add our repo to your settings.gradle
+Add jitpack to your settings.gradle
 
 ```
 pluginManagement {
     repositories {
         ...
         maven {
-            url "https://devserver3.ustadmobile.com/maven"
+            url "https://jitpack.io/"
         }
     }
 }
 ```
 
+Put the plugin on the classpath:
+
+```
+   dependencies {
+       classpath "com.github.UstadMobile.AdbScreenRecorder:lib-gradle-plugin:0.1-alpha11"
+   }
+
+```
+
+
 Add the plugin and dependencies to your build.gradle:
 ```
 //Apply the plugin
 plugins {
-    id "com.ustadmobile.adbscreenrecorder" version "0.1-alpha08"
+    id "com.ustadmobile.adbscreenrecorder"
 }
 
 ...
 
 //Add the dependency for the test rule
 dependencies {
-    androidTestImplementation "com.ustadmobile.adbscreenrecorder:lib-client:0.1-alpha08"
+    androidTestImplementation "com.github.UstadMobile.AdbScreenRecorder.lib-client:0.1-alpha11"
 }
 
 //Optionally configure the output directory
